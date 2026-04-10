@@ -10,8 +10,7 @@ A small Python utility to translate Japanese text in PowerPoint presentations to
 
 ## Prerequisites
 
-- Python 3.11 or later
-- [Pixi](https://github.com/microsoft/pixi) for dependency and runtime management
+- [Pixi](https://pixi.prefix.dev/latest/installation/) for dependency and runtime management
 
 ## Installation
 
@@ -23,9 +22,12 @@ pixi install
 
 ## Usage
 
+```powershell
+cd ppt-translator
+```
 Put your ppt file in the ppt folder and run the translator with a source PowerPoint filename and optional output path:
 
-```powershell
+```ruby
 pixi run python .\src\ppt_translator\__init__.py .\ppt\<INPUT FILENAME>.pptx --output .\ppt\<OUTPUT FILENAME>.pptx
 ```
 

@@ -74,13 +74,22 @@ def find_best_english_phrase(translated_text: str, english_texts: dict[str, str]
 
     best_match: str | None = None
     best_ratio = 0.0
+    best_original_length = 0
     for normalized_original, original_text in english_texts.items():
         ratio = difflib.SequenceMatcher(None, normalized_translated, normalized_original).ratio()
         if ratio > best_ratio:
             best_ratio = ratio
             best_match = original_text
+            best_original_length = len(normalized_original)
 
-    return best_match if best_ratio >= 0.75 else None
+    if best_match is None:
+        return None
+
+    length_difference = abs(len(normalized_translated) - best_original_length)
+    if best_ratio >= 0.95 or (best_ratio >= 0.9 and length_difference <= max(5, len(normalized_translated) * 0.1)):
+        return best_match
+
+    return None
 
 
 def translate_presentation(input_path: Path, output_path: Path | None = None) -> Path:
@@ -104,6 +113,8 @@ def translate_presentation(input_path: Path, output_path: Path | None = None) ->
                     for cell in row.cells:
                         cell_text = cell.text
                         if isinstance(cell_text, str) and cell_text.strip():
+                            if is_english_text(cell_text):
+                                continue
                             translated = translate_text(cell_text, translator)
                             best_phrase = find_best_english_phrase(translated, english_texts)
                             if best_phrase is not None:
@@ -115,15 +126,16 @@ def translate_presentation(input_path: Path, output_path: Path | None = None) ->
             if hasattr(shape, "has_text_frame") and shape.has_text_frame:
                 if shape.text_frame is None:
                     continue
-                for paragraph in shape.text_frame.paragraphs:
-                    paragraph_text = paragraph.text
-                    if isinstance(paragraph_text, str) and paragraph_text.strip():
-                        translated = translate_text(paragraph_text, translator)
-                        best_phrase = find_best_english_phrase(translated, english_texts)
-                        if best_phrase is not None:
-                            paragraph.text = ""
-                        elif translated:
-                            paragraph.text = translated
+                shape_text = shape.text
+                if isinstance(shape_text, str) and shape_text.strip():
+                    if is_english_text(shape_text):
+                        continue
+                    translated = translate_text(shape_text, translator)
+                    best_phrase = find_best_english_phrase(translated, english_texts)
+                    if best_phrase is not None:
+                        shape.text = ""
+                    elif translated:
+                        shape.text = translated
                 continue
 
     if output_path is None:
