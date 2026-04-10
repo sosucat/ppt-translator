@@ -1,0 +1,10 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# ignore generated PowerPoint inputs/outputs
+ppt/
+
+# ignore Python bytecode
+__pycache__/
+*.py[cod]
